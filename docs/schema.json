@@ -1,0 +1,84 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:dll-resolution-explainer:schema:1.0",
+  "title": "dll-resolution-explainer output 1.0",
+  "oneOf": [
+    {
+      "type": "object",
+      "required": ["schema_version", "error"],
+      "properties": {
+        "schema_version": {"const": "1.0"},
+        "tool_version": {"type": "string"},
+        "error": {"type": "string"}
+      }
+    },
+    {
+      "type": "object",
+      "required": ["schema_version", "tool_version", "target", "imports", "delay_imports", "resolution_model", "warnings", "limitations"],
+      "not": {"required": ["error"]},
+      "properties": {
+        "schema_version": {"const": "1.0"},
+        "tool_version": {"type": "string"},
+        "target": {
+          "type": "object",
+          "required": ["path", "architecture", "machine", "pe_type", "image_type", "subsystem", "characteristics", "dll_characteristics", "embedded_manifest", "external_manifest"],
+          "properties": {
+            "path": {"type": "string"},
+            "architecture": {"type": "string"},
+            "machine": {"type": "integer", "minimum": 0, "maximum": 65535},
+            "pe_type": {"enum": ["PE32", "PE32+"]},
+            "image_type": {"enum": ["EXE", "DLL"]},
+            "subsystem": {"type": "integer"},
+            "characteristics": {"type": "integer"},
+            "dll_characteristics": {"type": "integer"},
+            "embedded_manifest": {"type": "boolean"},
+            "external_manifest": {"type": "boolean"}
+          }
+        },
+        "imports": {"type": "array", "items": {"$ref": "#/$defs/import"}},
+        "delay_imports": {"type": "array", "items": {"$ref": "#/$defs/import"}},
+        "warnings": {"$ref": "#/$defs/strings"},
+        "limitations": {"$ref": "#/$defs/strings"},
+        "resolution_model": {
+          "type": "object",
+          "required": ["id", "application_directory_assumption", "path_included", "runtime_cwd_included", "locations"],
+          "properties": {
+            "id": {"const": "local-static-v1"},
+            "application_directory_assumption": {"type": "string"},
+            "path_included": {"const": false},
+            "runtime_cwd_included": {"const": false},
+            "locations": {"$ref": "#/$defs/strings"}
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "strings": {"type": "array", "items": {"type": "string"}},
+    "import": {
+      "type": "object",
+      "required": ["name", "kind", "classification", "resolution", "findings", "candidates"],
+      "properties": {
+        "name": {"type": "string"},
+        "kind": {"enum": ["normal", "delay"]},
+        "classification": {"enum": ["ordinary_import", "api_set_contract", "known_dll_configuration_entry"]},
+        "resolution": {"enum": ["candidate_under_model", "multiple_candidates", "missing_under_model", "runtime_dependent", "api_set_contract", "known_system_mechanism"]},
+        "findings": {"$ref": "#/$defs/strings"},
+        "candidates": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["path", "status", "architecture", "architecture_check", "warning"],
+            "properties": {
+              "path": {"type": "string"},
+              "status": {"enum": ["present", "absent", "unavailable_or_invalid"]},
+              "architecture": {"type": "string"},
+              "architecture_check": {"enum": ["unknown", "machine_match", "machine_mismatch"]},
+              "warning": {"type": "string"}
+            }
+          }
+        }
+      }
+    }
+  }
+}
